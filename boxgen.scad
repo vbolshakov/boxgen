@@ -3,8 +3,8 @@ module boxgen(
   thickness=3, //material thickness
   finger_width = undef, //default thickness*2
   bottoninset = 0, //height of bottom inset
-  frontinset = 0, //distance of front inset
   front_thickness = undef, //front material thickness
+  frontinset = 0, //distance of front inset
   kerf = 0.0,
   dividers = undef, //array of dividers [x, y, z] 
   finger_holes = undef,
@@ -12,19 +12,25 @@ module boxgen(
   )
   
 {
+  //Inner dimensions
+  idim = [
+    dim.x - thickness * 2,
+    dim.y - thickness - front_thickness - frontinset
+  ];
+  
   //Finger width
   finger_width = (finger_width==undef) ? thickness * 2 : finger_width;
   
   front_thickness = (front_thickness==undef) ? thickness : front_thickness;
   
   fingers = [
-    max(3,floor( ceil((dim.x - 2*thickness)/finger_width) /2 ) * 2 - 1),
+    max(3,floor( ceil(idim.x/finger_width) /2 ) * 2 - 1),
     max(3,floor( ceil(dim.y/finger_width) /2 ) * 2 - 1),
     max(3,floor( ceil(dim.z/finger_width) /2 ) * 2 - 1)   
   ];
   
   fingers_width = [
-   (dim.x - 2*thickness)/fingers.x,
+    idim.x/fingers.x,
     dim.y/fingers.y,
     dim.z/fingers.z,
   ];
@@ -33,19 +39,27 @@ module boxgen(
   START_TAB = 2;
   
   div_fingers = (dividers == undef) ? undef : [
-    (dividers.x == undef) ? 3 : dividers.x + 1,
-    (dividers.y == undef) ? 3 : dividers.y + 1
+    ((dividers.x == undef)||(dividers.x == 0)) ? 3 : dividers.x + 1,
+    ((dividers.y == undef)||(dividers.y == 0)) ? 3 : dividers.y + 1
     ];
+    
+  div_finger_width = 3 * thickness;
 
   div_width = [
-    dim.x - (1 + div_fingers.x)*thickness,
-    dim.y - div_fingers.y*thickness - front_thickness - frontinset
+    idim.x - thickness * (div_fingers.x - 1),
+    idim.y - thickness * (div_fingers.y - 1)
   ];
     
   div_space = (dividers == undef) ? undef : [
      div_width.x / div_fingers.x,
      div_width.y / div_fingers.y
     ];
+
+  div_finger_space = (dividers == undef) ? undef : [
+     idim.x / (div_fingers.x * 2),
+     idim.y / (div_fingers.y * 2)
+    ];
+    
     
   //Bottom panel
   module bottom(dim, fingers, fingers_width) {
@@ -84,31 +98,20 @@ module boxgen(
           //By X
           if(dividers.x != undef) {
             for(x=[1:1:dividers.x])
-              translate([
-                  -(dim.x - 2* thickness)/2 + thickness/2 + (thickness*(x-1))+ x*div_space.x,
-                  0
-                ])
-                for(y=[1:1:div_fingers.y])
-                  translate([
-                      0,
-                      -(div_width.y + div_space.y)/2 + y*div_space.y
-                    ])
-                    #square([thickness, thickness*3], center = true);
+              translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, 0])
+                for(y=[0:1:div_fingers.y-1])
+                  translate([0, -idim.y/2 + div_finger_space.y*(1+2*y)])
+                    #square([thickness, div_finger_width], center = true);
             }
             
           //By Y
           if(dividers.y != undef) {
             for(y=[1:1:dividers.y])
-              translate([
-                  0,
-                  -(dim.y - thickness - front_thickness - frontinset)/2 + thickness + (thickness*(y-1)) + y*div_space.y
+              translate([0, -idim.y/2 + thickness*(y-1/2) + div_space.y*y
                 ])
-                for(x=[1:1:div_fingers.x])
-                  translate([
-                        -div_width.x/2 + div_space.x/2 +(div_width.x/div_fingers.x)*(x-1),
-                        0
-                    ])
-                    #square([thickness*3, thickness], center = true);
+                for(x=[0:1:div_fingers.x-1])
+                  translate([-idim.x/2 + div_finger_space.x*(1+2*x), 0])
+                    #square([div_finger_width, thickness], center = true);
            }
         }
     }
@@ -189,12 +192,12 @@ module boxgen(
 }
 
 boxgen(
-  [54,54,44],
+  [54*3,54*3,44],
   thickness=3,
   //finger_width=6,
-  bottoninset=3,
+  bottoninset=0,
   kerf=0.3,
   front_thickness=3,
-  frontinset = 0
-  //dividers = [2,2]
+  frontinset = 0,
+  dividers = [3,3]
 );
