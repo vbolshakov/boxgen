@@ -17,7 +17,8 @@ module boxgen(
   //Inner dimensions
   idim = [
     dim.x - thickness * 2,
-    dim.y - thickness - front_thickness - frontinset
+    dim.y - thickness - front_thickness - frontinset,
+    dim.z - thickness - bottoninset
   ];
  
   //Finger width
@@ -90,27 +91,24 @@ module boxgen(
         }
 
       //Dividers
-        if(dividers != undef) {
-          //By X
-          if(dividers.x != undef) {
-            for(x=[1:1:dividers.x])
-              translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, 0])
-                for(y=[0:1:div_fingers.y-1])
-                  translate([0, -idim.y/2 - thickness/2 + front_thickness/2 + frontinset/2 + div_finger_space.y*(1+2*y)])
-                    #square([thickness, div_finger_width], center = true);
-            }
-          //By Y
-          if(dividers.y != undef) {
-            for(y=[1:1:dividers.y])
-              translate([0, -idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y])
-                for(x=[0:1:div_fingers.x-1])
-                  translate([-idim.x/2 + div_finger_space.x*(1+2*x), 0])
-                    #square([div_finger_width, thickness], center = true);
-           }
-        }
+      //By X
+      if(dividers.x != undef)
+        for(x=[1:1:dividers.x])
+          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, 0])
+            for(y=[0:1:div_fingers.y-1])
+              translate([0, -idim.y/2 - thickness/2 + front_thickness/2 + frontinset/2 + div_finger_space.y*(1+2*y)])
+                #square([thickness, div_finger_width], center = true);
+
+      //By Y
+      if(dividers.y != undef)
+        for(y=[1:1:dividers.y])
+          translate([0, -idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y])
+            for(x=[0:1:div_fingers.x-1])
+              translate([-idim.x/2 + div_finger_space.x*(1+2*x), 0])
+                #square([div_finger_width, thickness], center = true);
     }
   }
-
+  
   FRONT = 1;
   BACK = 2;
   SIDE = 3;
@@ -151,10 +149,59 @@ module boxgen(
           translate([(dim.x-thickness)/2, 0])
             #square([thickness, fingers_width.y - ((type==SIDE)?kerf:0)], center = true);
         }
+
+      //Dividers fingers
+      if (((type==FRONT)||(type==BACK))&&(dividers.x != undef))
+        for(x=[1:1:dividers.x])
+          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, thickness + bottoninset])
+            #square([thickness, div_finger_width], center = true);
+
+      if ((type==SIDE)&&(dividers.y != undef))
+            for(y=[1:1:dividers.y])
+              translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, thickness + bottoninset])
+                    #square([thickness, div_finger_width], center = true);
+    }
+  }
+
+  module divider_x() {
+    union() {
+      square([idim.y, idim.z],center=true);
+      translate([-idim.y/2 - thickness/2, bottoninset])
+        #square([thickness, div_finger_width + kerf], center = true);
+      translate([idim.y/2 + thickness/2, bottoninset])
+        #square([thickness, div_finger_width + kerf], center = true);
+
+      for(y=[0:1:div_fingers.y-1])
+        translate([-idim.y/2 + div_finger_space.y*(1+2*y), -idim.z/2 - thickness/2])
+          #square([div_finger_width + kerf, thickness], center = true);
+    }
+  }
+
+  module divider_y() {
+    union() {
+      square([idim.x, idim.z],center=true);
+        translate([-idim.x/2 - thickness/2, bottoninset])
+          #square([thickness, div_finger_width + kerf], center = true);
+        translate([idim.x/2 + thickness/2, bottoninset])
+          #square([thickness, div_finger_width + kerf], center = true);
+      
+        for(x=[0:1:div_fingers.x-1])
+          translate([-idim.x/2 + div_finger_space.x*(1+2*x), -idim.z/2 - thickness/2])
+            #square([div_finger_width + kerf, thickness], center = true);
     }
   }
 
   spacing = 1;
+ 
+  for(x=[1:1:dividers.x])
+    translate([(dim.x+dim.z)/2 + (dim.z + thickness * 2 + spacing) * x , 0])
+      rotate(-90)
+        divider_x();
+
+  for(y=[1:1:dividers.y])
+    translate([0, (dim.y+dim.z)/2 + (dim.z + thickness * 2 + spacing) * y])
+        divider_y();
+  
   //Bottom
   bottom(dim, fingers, fingers_width);
 
