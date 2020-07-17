@@ -1,0 +1,4 @@
+include <../boxgen.scad>
+
+boxgen(
+);

@@ -237,14 +237,3 @@ module boxgen(
       side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
  
 }
-
-boxgen(
-  [54*3,54*3,44],
-  thickness=3,
-  //finger_width=6,
-  bottoninset=3,
-  kerf=0.3,
-  front_thickness=3,
-  frontinset = 3,
-  dividers = [3,3]
-);
