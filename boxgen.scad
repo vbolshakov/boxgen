@@ -164,30 +164,42 @@ module boxgen(
   }
 
   module divider_x() {
-    union() {
-      square([idim.y, idim.z],center=true);
-      translate([-idim.y/2 - thickness/2, bottoninset])
-        #square([thickness, div_finger_width + kerf], center = true);
-      translate([idim.y/2 + thickness/2, bottoninset])
-        #square([thickness, div_finger_width + kerf], center = true);
+    difference() {
+      union() {
+        square([idim.y, idim.z],center=true);
+        translate([-idim.y/2 - thickness/2, bottoninset])
+          #square([thickness, div_finger_width + kerf], center = true);
+        translate([idim.y/2 + thickness/2, bottoninset])
+          #square([thickness, div_finger_width + kerf], center = true);
 
-      for(y=[0:1:div_fingers.y-1])
-        translate([-idim.y/2 + div_finger_space.y*(1+2*y), -idim.z/2 - thickness/2])
-          #square([div_finger_width + kerf, thickness], center = true);
+        for(y=[0:1:div_fingers.y-1])
+          translate([-idim.y/2 + div_finger_space.y*(1+2*y), -idim.z/2 - thickness/2])
+            #square([div_finger_width + kerf, thickness], center = true);
+      }
+      
+        for(y=[1:1:dividers.y])
+          translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, idim.z/4])
+                #square([thickness, idim.z/2], center = true);
     }
   }
 
   module divider_y() {
-    union() {
-      square([idim.x, idim.z],center=true);
-        translate([-idim.x/2 - thickness/2, bottoninset])
-          #square([thickness, div_finger_width + kerf], center = true);
-        translate([idim.x/2 + thickness/2, bottoninset])
-          #square([thickness, div_finger_width + kerf], center = true);
-      
-        for(x=[0:1:div_fingers.x-1])
-          translate([-idim.x/2 + div_finger_space.x*(1+2*x), -idim.z/2 - thickness/2])
-            #square([div_finger_width + kerf, thickness], center = true);
+    difference() {
+      union() {
+        square([idim.x, idim.z],center=true);
+          translate([-idim.x/2 - thickness/2, bottoninset])
+            #square([thickness, div_finger_width + kerf], center = true);
+          translate([idim.x/2 + thickness/2, bottoninset])
+            #square([thickness, div_finger_width + kerf], center = true);
+        
+          for(x=[0:1:div_fingers.x-1])
+            translate([-idim.x/2 + div_finger_space.x*(1+2*x), -idim.z/2 - thickness/2])
+              #square([div_finger_width + kerf, thickness], center = true);
+      }
+
+      for(x=[1:1:dividers.x])
+        translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, -idim.z/4])
+          #square([thickness, idim.z/2], center = true);
     }
   }
 
@@ -234,5 +246,5 @@ boxgen(
   kerf=0.3,
   front_thickness=3,
   frontinset = 3,
-  dividers = [2,2]
+  dividers = [3,3]
 );
