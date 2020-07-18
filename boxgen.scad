@@ -2,7 +2,7 @@ module boxgen(
   dim = [54,54,44],
   thickness=3, //material thickness
   finger_width = undef, //default thickness*2
-  bottoninset = 0, //height of bottom inset
+  bottominset = 0, //height of bottom inset
   front_thickness = undef, //front material thickness
   frontinset = 0, //distance of front inset
   kerf = 0.0,
@@ -13,12 +13,12 @@ module boxgen(
   
 {
   front_thickness = (front_thickness==undef) ? thickness : front_thickness;
-
+  
   //Inner dimensions
   idim = [
     dim.x - thickness * 2,
     dim.y - thickness - front_thickness - frontinset,
-    dim.z - thickness - bottoninset
+    dim.z - thickness - bottominset
   ];
  
   //Finger width
@@ -125,12 +125,12 @@ module boxgen(
       for(i=[bottomstart:2:fingers.x])
         translate([
             -(dim.x - ((type == FRONT)||(type == BACK)?2*thickness:0) + fingers_width.x)/2 + fingers_width.x*i,
-            -(dim.y - thickness)/2 + bottoninset])
+            -(dim.y - thickness)/2 + bottominset])
           #square([fingers_width.x - (((type == FRONT)&&(frontinset > 0))?0:kerf), thickness], center = true);
       
-      if ((type == FRONT)&&(bottoninset > 0)&&(frontinset > 0))
-        translate([0, -(dim.y - bottoninset)/2])
-          #square([dim.x, bottoninset], center = true);
+      if ((type == FRONT)&&(bottominset > 0)&&(frontinset > 0))
+        translate([0, -(dim.y - bottominset)/2])
+          #square([dim.x, bottominset], center = true);
 
       sidestart = (type == SIDE) ? START_TAB : START_SLOT;
 
@@ -153,12 +153,12 @@ module boxgen(
       //Dividers fingers
       if (((type==FRONT)||(type==BACK))&&(dividers.x != undef))
         for(x=[1:1:dividers.x])
-          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, thickness + bottoninset])
+          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, thickness + bottominset])
             #square([thickness, div_finger_width], center = true);
 
       if ((type==SIDE)&&(dividers.y != undef))
             for(y=[1:1:dividers.y])
-              translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, thickness + bottoninset])
+              translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, thickness + bottominset])
                     #square([thickness, div_finger_width], center = true);
     }
   }
@@ -167,9 +167,9 @@ module boxgen(
     difference() {
       union() {
         square([idim.y, idim.z],center=true);
-        translate([-idim.y/2 - thickness/2, bottoninset])
+        translate([-idim.y/2 - thickness/2, bottominset])
           #square([thickness, div_finger_width + kerf], center = true);
-        translate([idim.y/2 + thickness/2, bottoninset])
+        translate([idim.y/2 + thickness/2, bottominset])
           #square([thickness, div_finger_width + kerf], center = true);
 
         for(y=[0:1:div_fingers.y-1])
@@ -187,9 +187,9 @@ module boxgen(
     difference() {
       union() {
         square([idim.x, idim.z],center=true);
-          translate([-idim.x/2 - thickness/2, bottoninset])
+          translate([-idim.x/2 - thickness/2, bottominset])
             #square([thickness, div_finger_width + kerf], center = true);
-          translate([idim.x/2 + thickness/2, bottoninset])
+          translate([idim.x/2 + thickness/2, bottominset])
             #square([thickness, div_finger_width + kerf], center = true);
         
           for(x=[0:1:div_fingers.x-1])
