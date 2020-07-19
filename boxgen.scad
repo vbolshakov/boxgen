@@ -222,22 +222,15 @@ module boxgen(
 
   spacing = 1;
 
-  translate([dim.x/2 + spacing + dim.z + spacing + dim.z/2 + spacing, 0]) 
-        rotate(-90)
-          verticaldivider();
-
-  translate([0, dim.y/2 + spacing + dim.z + spacing + dim.z/2 + spacing])
-          horizontaldivider();
-  
   //Bottom
   bottom(dim, fingers, fingers_width);
 
   //Back
-  translate([0,(dim.y+dim.z)/2 + spacing])
+  translate([0, (dim.y+dim.z)/2 + spacing])
     side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=BACK);
   
   //Front
-  translate([0,-(dim.y+dim.z)/2 - spacing])
+  translate([0, -(dim.y+dim.z)/2 - spacing + bottominset])
     mirror([0,1])
       side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=FRONT);
 
@@ -250,5 +243,18 @@ module boxgen(
   translate([(dim.x+dim.z)/2 + spacing, 0])
     mirror([1,0])rotate(90)
       side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
+
+  //Vertical dividers
+  translate([(dim.x + dim.z)/2 + spacing + (bottom_thickness + bottominset)/2, 0]) 
+    for(x=[1:1:dividers.x])
+      translate([(idim.z + bottom_thickness + spacing) * x , 0])
+          rotate(-90)
+            verticaldivider();
+
+  //Horizontal divider
+  translate([0, (dim.y + dim.z)/2 + spacing + (bottom_thickness + bottominset)/2]) 
+  for(y=[1:1:dividers.y])
+    translate([0, (idim.z + bottom_thickness + spacing) * y])
+        horizontaldivider();
  
 }
