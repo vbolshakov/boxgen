@@ -6,6 +6,7 @@ module boxgen(
   bottominset = 0,          //height of bottom inset
   front_thickness = undef,  //front material thickness
   frontinset = 0,           //distance of front inset
+  drawer_slide_width = 0 ,  //extend bottom width to work as sliders 
   kerf = 0.0,               //kerf compensation, slots and holes width will be decreased  
   dividers = undef,         //array of dividers [x, y, z] 
   holes = undef,            //position and size of holes, not implemented 
@@ -13,8 +14,10 @@ module boxgen(
   )
   
 {
-  front_thickness = (front_thickness==undef) ? thickness : front_thickness;
-  bottom_thickness = (bottom_thickness==undef) ? thickness : bottom_thickness;
+  front_thickness = (front_thickness == undef) ? thickness : front_thickness;
+  bottom_thickness = (bottom_thickness == undef) ? thickness : bottom_thickness;
+
+  bottominset = (drawer_slide_width == 0) ? bottominset : 0;
 
   //Inner dimensions
   idim = [
@@ -66,7 +69,7 @@ module boxgen(
   //Bottom panel
   module bottom(dim, fingers, fingers_width) {
     difference() {
-      square([dim.x, dim.y], center=true);
+      square([dim.x + drawer_slide_width * 2, dim.y - 0.001], center=true);
 
       start = (frontinset == 0) ? START_SLOT : START_TAB;
 
@@ -235,17 +238,17 @@ module boxgen(
       side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=FRONT);
 
   //Left
-  translate([-(dim.x+dim.z)/2 - spacing, 0])
+  translate([-(dim.x+dim.z)/2 - drawer_slide_width - spacing, 0])
     rotate(90)
       side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
 
   //Right
-  translate([(dim.x+dim.z)/2 + spacing, 0])
+  translate([(dim.x+dim.z)/2 + drawer_slide_width + spacing, 0])
     mirror([1,0])rotate(90)
       side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
 
   //Vertical dividers
-  translate([(dim.x + dim.z)/2 + spacing + (bottom_thickness + bottominset)/2, 0]) 
+  translate([(dim.x + dim.z)/2 + drawer_slide_width + spacing + (bottom_thickness + bottominset)/2, 0]) 
     for(x=[1:1:dividers.x])
       translate([(idim.z + bottom_thickness + spacing) * x , 0])
           rotate(-90)
