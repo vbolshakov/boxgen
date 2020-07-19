@@ -30,8 +30,8 @@ DY = 0; //[0:3]
 boxgen(
   [54*X,54*Y,54*Z],
   thickness = T,
-  bottoninset = BI,
+  botton_inset = BI,
   front_thickness = FT,
-  frontinset = FI,
+  front_inset = FI,
   dividers = [DX, DY]
 );

@@ -3,12 +3,13 @@ module boxgen(
   thickness=3,              //material thickness
   finger_width = undef,     //default thickness*2
   bottom_thickness = undef, //bottom material thickness
-  bottominset = 0,          //height of bottom inset
+  bottom_inset = 0,         //height of bottom inset
   front_thickness = undef,  //front material thickness
-  frontinset = 0,           //distance of front inset
+  front_inset = 0,          //distance of front inset
   drawer_slide_width = 0 ,  //extend bottom width to work as sliders 
   kerf = 0.0,               //kerf compensation, slots and holes width will be decreased  
   dividers = undef,         //array of dividers [x, y, z] 
+  dividers_height = undef,  //height of dividers
   holes = undef,            //position and size of holes, not implemented 
   empty_sides = undef       //array of sides to remove, not implemented
   )
@@ -17,15 +18,15 @@ module boxgen(
   front_thickness = (front_thickness == undef) ? thickness : front_thickness;
   bottom_thickness = (bottom_thickness == undef) ? thickness : bottom_thickness;
 
-  bottominset = (drawer_slide_width == 0) ? bottominset : 0;
+  bottom_inset = (drawer_slide_width == 0) ? bottom_inset : 0;
 
   //Inner dimensions
   idim = [
     dim.x - thickness * 2,
-    dim.y - thickness - front_thickness - frontinset,
-    dim.z - bottom_thickness - bottominset
+    dim.y - thickness - front_thickness - front_inset,
+    dim.z - bottom_thickness - bottom_inset
   ];
- 
+
   //Finger width
   finger_width = (finger_width==undef) ? thickness * 2 : finger_width;
   
@@ -65,19 +66,21 @@ module boxgen(
      idim.x / (div_fingers.x * 2),
      idim.y / (div_fingers.y * 2)
     ];
+
+  dividers_height = (dividers_height == undef) ? idim.z : (dividers_height>idim.z) ? idim.z : dividers_height;
     
   //Bottom panel
   module bottom(dim, fingers, fingers_width) {
     difference() {
       square([dim.x + drawer_slide_width * 2, dim.y - 0.001], center=true);
 
-      start = (frontinset == 0) ? START_SLOT : START_TAB;
+      start = (front_inset == 0) ? START_SLOT : START_TAB;
 
       //Front side
       for(i=[start:2:fingers.x])
         translate([-(dim.x - 2*thickness + fingers_width.x)/2 + fingers_width.x*i, 0])
-          translate([0, -(dim.y - front_thickness)/2 + frontinset])
-            #square([fingers_width.x - ((frontinset > 0)?kerf:0), front_thickness], center = true);
+          translate([0, -(dim.y - front_thickness)/2 + front_inset])
+            #square([fingers_width.x - ((front_inset > 0)?kerf:0), front_thickness], center = true);
 
       //Back side
       for(i=[START_SLOT:2:fingers.x])
@@ -95,18 +98,18 @@ module boxgen(
             #square([thickness, fingers_width.y], center = true);
         }
 
-      //Holes for vertical dividers tabs
+      //Slots for vertical dividers tabs
       if(dividers.x != undef)
         for(x=[1:1:dividers.x])
           translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, 0])
             for(y=[0:1:div_fingers.y-1])
-              translate([0, -idim.y/2 - thickness/2 + front_thickness/2 + frontinset/2 + div_finger_space.y*(1+2*y)])
+              translate([0, -idim.y/2 - thickness/2 + front_thickness/2 + front_inset/2 + div_finger_space.y*(1+2*y)])
                 #square([thickness, div_finger_width - kerf], center = true);
 
-      //Holes for horizontal dividers tabs
+      //Slots for horizontal dividers tabs
       if(dividers.y != undef)
         for(y=[1:1:dividers.y])
-          translate([0, -idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y])
+          translate([0, -idim.y/2 + front_thickness/2 + front_inset/2 + thickness*(y-1) + div_space.y*y])
             for(x=[0:1:div_fingers.x-1])
               translate([-idim.x/2 + div_finger_space.x*(1+2*x), 0])
                 #square([div_finger_width - kerf, thickness], center = true);
@@ -123,18 +126,18 @@ module boxgen(
     difference() {
       square([dim.x, dim.y], center=true);
 
-      bottomstart = ((type == FRONT)&&(frontinset > 0)) ? START_SLOT : START_TAB;
+      bottomstart = ((type == FRONT)&&(front_inset > 0)) ? START_SLOT : START_TAB;
 
       //Bottom
       for(i=[bottomstart:2:fingers.x])
         translate([
             -(dim.x - ((type == FRONT)||(type == BACK)?2*thickness:0) + fingers_width.x)/2 + fingers_width.x*i,
-            -(dim.y - bottom_thickness)/2 + bottominset])
-          #square([fingers_width.x - (((type == FRONT)&&(frontinset > 0))?0:kerf), bottom_thickness], center = true);
+            -(dim.y - bottom_thickness)/2 + bottom_inset])
+          #square([fingers_width.x - (((type == FRONT)&&(front_inset > 0))?0:kerf), bottom_thickness], center = true);
       
-      if ((type == FRONT)&&(bottominset > 0)&&(frontinset > 0))
-        translate([0, -(dim.y - bottominset)/2])
-          #square([dim.x, bottominset], center = true);
+      if ((type == FRONT)&&(bottom_inset > 0)&&(front_inset > 0))
+        translate([0, -(dim.y - bottom_inset)/2])
+          #square([dim.x, bottom_inset], center = true);
 
       sidestart = (type == SIDE) ? START_TAB : START_SLOT;
 
@@ -142,8 +145,8 @@ module boxgen(
       for(i=[sidestart:2:fingers.y])
         translate([0, -dim.y/2 - fingers_width.y/2 + fingers_width.y*i]) {
           thickness = (type == FRONT)||(type == BACK) ? thickness : front_thickness;
-          frontinset = (type == SIDE) ? frontinset : 0;
-          translate([-(dim.x - thickness)/2 + frontinset, 0])
+          front_inset = (type == SIDE) ? front_inset : 0;
+          translate([-(dim.x - thickness)/2 + front_inset, 0])
             #square([thickness, fingers_width.y - ((type==SIDE)?kerf:0)], center = true);
         }
 
@@ -154,45 +157,45 @@ module boxgen(
             #square([thickness, fingers_width.y - ((type==SIDE)?kerf:0)], center = true);
         }
 
-      //Holes for vertical dividers tabs
+      //Slots for vertical dividers tabs
       if (((type==FRONT)||(type==BACK))&&(dividers.x != undef))
         for(x=[1:1:dividers.x])
-          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, dim.y/2 - div_finger_width*1.5])
-            #square([thickness, div_finger_width], center = true);
+          translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, -dim.y/2 + bottom_thickness + bottom_inset + dividers_height/2 + dividers_height/4])
+            #square([thickness, dividers_height/2], center = true);
 
-      //Holes for horizontal dividers tabs
+      //Slots for horizontal dividers tabs
       if ((type==SIDE)&&(dividers.y != undef))
             for(y=[1:1:dividers.y])
-              translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, dim.y/2 - div_finger_width*1.5])
-                    #square([thickness, div_finger_width], center = true);
+              translate([-idim.y/2 + front_thickness/2 + front_inset/2 + thickness*(y-1) + div_space.y*y, -dim.y/2 + bottom_thickness + bottom_inset + dividers_height/2 + dividers_height/4])
+                    #square([thickness, dividers_height/2], center = true);
     }
   }
 
   //Vertical divider panel
   module verticaldivider() {
     difference() {
-      translate([(thickness - front_thickness - frontinset)/2, 0])
+      translate([(thickness - front_thickness - front_inset)/2, 0])
         union() {
-          square([idim.y, idim.z],center=true);
+          square([idim.y, dividers_height],center=true);
 
           //Back tabs
-          translate([-idim.y/2 - thickness/2, idim.z/2 - div_finger_width*1.5])
-            #square([thickness, div_finger_width], center = true);
+          translate([-idim.y/2 - thickness/2, dividers_height/2 - dividers_height/4])
+            #square([thickness, dividers_height/2], center = true);
 
           //Front tabs
-          translate([idim.y/2 + front_thickness/2, idim.z/2 - div_finger_width*1.5])
-            #square([front_thickness, div_finger_width], center = true);
+          translate([idim.y/2 + front_thickness/2, dividers_height/2 - dividers_height/4])
+            #square([front_thickness, dividers_height/2], center = true);
 
           //Bottom tabs
           for(y=[0:1:div_fingers.y-1])
-            translate([-idim.y/2 + div_finger_space.y*(1+2*y), -idim.z/2 - bottom_thickness/2])
+            translate([-idim.y/2 + div_finger_space.y*(1+2*y), -dividers_height/2 - bottom_thickness/2])
               #square([div_finger_width, bottom_thickness], center = true);
         }
           // Slots for horizontal dividers
-          translate([(thickness - front_thickness - frontinset), 0])
+          translate([(thickness - front_thickness - front_inset), 0])
             for(y=[1:1:dividers.y])
-              translate([-idim.y/2 + front_thickness/2 + frontinset/2 + thickness*(y-1) + div_space.y*y, idim.z/4])
-                    #square([thickness, idim.z/2], center = true);
+              translate([-idim.y/2 + front_thickness/2 + front_inset/2 + thickness*(y-1) + div_space.y*y, dividers_height/4])
+                    #square([thickness, dividers_height/2], center = true);
     }
   }
 
@@ -200,26 +203,26 @@ module boxgen(
   module horizontaldivider() {
     difference() {
       union() {
-        square([idim.x, idim.z],center=true);
+        square([idim.x, dividers_height],center=true);
 
         //Left tabs
-        translate([-idim.x/2 - thickness/2, idim.z/2 - div_finger_width*1.5])
-          #square([thickness, div_finger_width], center = true);
+        translate([-idim.x/2 - thickness/2, dividers_height/2 - dividers_height/4])
+          #square([thickness, dividers_height/2], center = true);
 
         //Right tabs
-        translate([idim.x/2 + thickness/2, idim.z/2 - div_finger_width*1.5])
-          #square([thickness, div_finger_width], center = true);
+        translate([idim.x/2 + thickness/2, dividers_height/2 - dividers_height/4])
+          #square([thickness, dividers_height/2], center = true);
       
         //Bottom tabs
         for(x=[0:1:div_fingers.x-1])
-          translate([-idim.x/2 + div_finger_space.x*(1+2*x), -idim.z/2 - bottom_thickness/2])
+          translate([-idim.x/2 + div_finger_space.x*(1+2*x), -dividers_height/2 - bottom_thickness/2])
             #square([div_finger_width, bottom_thickness], center = true);
     }
 
       // Slots for vertical dividers
       for(x=[1:1:dividers.x])
-        translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, -idim.z/4])
-          #square([thickness, idim.z/2], center = true);
+        translate([-idim.x/2 + thickness*(x-1/2)+ div_space.x*x, -dividers_height/4])
+          #square([thickness, dividers_height/2], center = true);
     }
   }
 
@@ -233,7 +236,7 @@ module boxgen(
     side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=BACK);
   
   //Front
-  translate([0, -(dim.y+dim.z)/2 - spacing + bottominset])
+  translate([0, -(dim.y+dim.z)/2 - spacing + bottom_inset])
     mirror([0,1])
       side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=FRONT);
 
@@ -244,20 +247,21 @@ module boxgen(
 
   //Right
   translate([(dim.x+dim.z)/2 + drawer_slide_width + spacing, 0])
-    mirror([1,0])rotate(90)
-      side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
+    mirror([1,0])
+      rotate(90)
+        side([dim.y, dim.z], [fingers.y, fingers.z], [fingers_width.y, fingers_width.z], type=SIDE);
 
   //Vertical dividers
-  translate([(dim.x + dim.z)/2 + drawer_slide_width + spacing + (bottom_thickness + bottominset)/2, 0]) 
+  translate([dim.x/2 + drawer_slide_width + spacing + dim.z + spacing + dividers_height/2 + bottom_thickness, 0]) 
     for(x=[1:1:dividers.x])
-      translate([(idim.z + bottom_thickness + spacing) * x , 0])
+      translate([(dividers_height + bottom_thickness + spacing) * (x-1) , 0])
           rotate(-90)
             verticaldivider();
 
   //Horizontal divider
-  translate([0, (dim.y + dim.z)/2 + spacing + (bottom_thickness + bottominset)/2]) 
+  translate([0, dim.y/2 + spacing + dim.z + spacing + dividers_height/2 + bottom_thickness]) 
   for(y=[1:1:dividers.y])
-    translate([0, (idim.z + bottom_thickness + spacing) * y])
+    translate([0, (dividers_height + bottom_thickness + spacing) * (y-1)])
         horizontaldivider();
  
 }
