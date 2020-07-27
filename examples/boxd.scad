@@ -8,5 +8,5 @@ boxgen(
   front_thickness = 4,
   front_inset = 3,
   dividers = [3,3],
-  dividers_height = 20
+  dividers_height = undef
 );
