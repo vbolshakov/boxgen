@@ -30,7 +30,7 @@ DY = 0; //[0:3]
 boxgen(
   [54*X,54*Y,54*Z],
   thickness = T,
-  botton_inset = BI,
+  bottom_inset = BI,
   front_thickness = FT,
   front_inset = FI,
   dividers = [DX, DY]
