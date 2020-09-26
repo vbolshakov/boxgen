@@ -236,7 +236,7 @@ module boxgen(
     side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=BACK);
   
   //Front
-  translate([0, -(dim.y+dim.z)/2 - spacing + bottom_inset])
+  translate([0, -(dim.y+dim.z)/2 - spacing + ((front_inset==0)?0:bottom_inset)])
     mirror([0,1])
       side([dim.x, dim.z], [fingers.x, fingers.z], [fingers_width.x, fingers_width.z], type=FRONT);
 
