@@ -56,12 +56,17 @@ module boxgen(
   fingers_width = [
     idim.x/fingers.x,
     dim.y/fingers.y,
-    dim.z/fingers.z,
+    dim.z/fingers.z
   ];
   
   START_SLOT = 0;
   START_TAB = 1;
-
+  
+  dividers  = (dividers == undef) ? undef : [
+    ((dividers.x == undef)||(dividers.x < 0)) ? 0 : dividers.x,
+    ((dividers.y == undef)||(dividers.y < 0)) ? 0 : dividers.y
+  ];
+  
   divider_thickness = (divider_thickness == undef) ? thickness : divider_thickness;
   divider_height = (divider_height == undef) ? idim.z : divider_height;
 
@@ -71,9 +76,11 @@ module boxgen(
     ];
     
   div_space = (dividers == undef) ? undef : [
-    (idim.x - divider_thickness * dividers.x  ) / (dividers.x + 1),
-    (idim.y - divider_thickness * dividers.y  ) / (dividers.y + 1),
+    (idim.x - divider_thickness * dividers.x  ) / div_fingers.x,
+    (idim.y - divider_thickness * dividers.y  ) / div_fingers.y
   ];
+  
+  echo(div_space);
 
   divider_finger_width = (dividers == undef) ? undef : [
     div_space.x/3,
@@ -84,6 +91,7 @@ module boxgen(
      idim.x / (div_fingers.x * 2),
      idim.y / (div_fingers.y * 2)
     ];
+
 
 /*TODO:
 1. Generate shelf support if shelves and dividers defined simulteniously
@@ -145,7 +153,6 @@ module boxgen(
             translate([0, div_finger_space.y*(i*2+1) - divider_finger_width.y/2 + kerf/2])
               #square([divider_thickness, divider_finger_width.y - kerf]); 
              
-
         //Slots for horizontal dividers tabs
         if(dividers.y != undef)
           translate([thickness, front_thickness + front_inset ])
@@ -328,9 +335,5 @@ module boxgen(
 boxgen(
   [54*2,54*2,44],
   thickness = 3,
-  bottom_thickness = 4,
-  front_thickness = 4,
-  front_inset = 6,
-  drawer_slide_width = 8,
-  dividers = [3,3]
+  dividers = [1,1]
 );
