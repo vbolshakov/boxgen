@@ -96,7 +96,7 @@ module boxgen(
 /*TODO:
 1. Generate shelf support if shelves and dividers defined simulteniously
 2. Generate slots in top if top and dividers, and div_heigth = idim.z
-3. Defferent finger width for front size in top=true mode
+3. Defferent finger width for front side in top=true mode
 */
 
   module fingers(start, num, width, thickness, kerf = 0, kerfcompensation = 0){
@@ -117,31 +117,18 @@ module boxgen(
       if(front)
         translate([thickness, front_inset])
           fingers(start, fingers.x, fingers_width.x, front_thickness, ((front_inset > 0)?kerf:0), ((front_inset > 0)?kerf/2:0));
-//          for(i=[start:2:fingers.x-1])
-//            translate([fingers_width.x*i + ((front_inset > 0)?kerf/2:0), 0])
-//              #square([fingers_width.x - ((front_inset > 0)?kerf:0), front_thickness]);
 
       //Back side
       translate([thickness, (dim.y - thickness)])
         fingers(0, fingers.x, fingers_width.x, thickness);
-//        for(i=[0:2:fingers.x])
-//          translate([fingers_width.x*i, 0])
-//            #square([fingers_width.x, thickness]);
 
       //Left side
       translate([(thickness), 0])
-      rotate([0,0,90])fingers(0, fingers.y, fingers_width.y, thickness);
-//      for(i=[0:2:fingers.y])
-//        translate([0, fingers_width.y*i])
-//          #square([thickness, fingers_width.y]);
+      rotate([0,0,90]) fingers(0, fingers.y, fingers_width.y, thickness);
 
       //Right side
       translate([(dim.x), 0])
-      rotate([0,0,90])fingers(0, fingers.y, fingers_width.y, thickness);
-//      translate([(dim.x - thickness), 0])
-//      for(i=[0:2:fingers.y])
-//        translate([0, fingers_width.y*i])
-//          #square([thickness, fingers_width.y]);
+      rotate([0,0,90]) fingers(0, fingers.y, fingers_width.y, thickness);
 
       if(!divider_removable){
         //Slots for vertical dividers tabs
